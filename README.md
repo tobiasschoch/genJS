@@ -1,2 +1,2 @@
 # genJS
- Generalized James-Stein
+ Generalized James-Stein Estimation

@@ -34,7 +34,11 @@
 genJS <- function(yi, di, center = TRUE, maxit = 100, tol = 1e-5,
     verbose = TRUE)
 {
+    at <- complete.cases(yi, di)
+    if (sum(at) != length(at))
+        stop("Some values are missing or not a number\n")
     stopifnot(all(di > 0), length(yi) == length(di))
+
     # initialization
     if (center) {
         # REML estimator
@@ -86,10 +90,11 @@ genJS <- function(yi, di, center = TRUE, maxit = 100, tol = 1e-5,
     res <- list(mu = mu, A = A, center = center,
             model = list(yi = yi, di = di, n = length(yi)),
         method = ifelse(center, "REML", "MLE"), converged = converged,
-        niter = niter, tol = tol, negflag = negflag)
+        niter = niter, tol = tol, negflag = negflag, call = match.call())
     class(res) <- "genJS"
     res
 }
+# print method
 print.genJS <- function(x, ...)
 {
     cat(paste0("\nGeneralized James-Stein ", x$method, " estimator\n"))
@@ -106,6 +111,7 @@ print.genJS <- function(x, ...)
         print(x$A)
     }
 }
+# summary method
 summary.genJS <- function(object, ...)
 {
     cat(paste0("\nGeneralized James-Stein ", object$method, " estimator\n"))
@@ -113,16 +119,17 @@ summary.genJS <- function(object, ...)
         cat("\nFisher scoring algorithm did not converge\n\n")
     } else {
         cat(paste0("Number of iterations: ", object$niter,
-            "\nNumerical tolerance for Fisher scoring: ", object$tol,"\n\n"))
+            "\nNumerical tolerance for Fisher scoring: ", object$tol,"\n"))
         if (object$negflag)
-            cat("Variance estimate was negative (negflag)\n")
-        stats::pnorm(0.975)
+            cat("NOTE: Variance estimate was negative (negflag)\n")
     }
 }
+# extract estimate
 coef.genJS <- function(object, ...)
 {
     object$mu
 }
+# extract covariance matrix
 vcov.genJS <- function(object, ...)
 {
     object$A

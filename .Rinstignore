@@ -1,0 +1,9 @@
+# github stuff
+^\.git$
+^\.gitattributes$
+^\.gitignore$
+^README\.md$
+# documentation
+^inst/varia$
+# license (github requries it in the base directory but CRAN complains)
+^LICENSE$

@@ -1,0 +1,24 @@
+Package: genJS
+Type: Package
+Title: Generalized James-Stein Estimation
+Version: 0.1
+Authors@R:
+   c(person(
+      given ="Tobias",
+      family = "Schoch",
+      email = "tobias.schoch@fhnw.ch",
+      role = c("aut","cre")))
+Description: The package provides functions to compute generalized
+    James-Stein estimators and empirical Bayes predictions. Implemented
+    estimators are maximum-likelihood (ML) and restricted ML.
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 3.5.0)
+Imports:
+    stats
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr, rmarkdown

@@ -1,0 +1,9 @@
+S3method(print,genJS)
+S3method(summary,genJS)
+S3method(coef,genJS)
+S3method(predict,genJS)
+S3method(vcov,genJS)
+
+export(mse)
+export(genJS)
+export(SCV)

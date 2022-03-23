@@ -1,0 +1,2 @@
+# genJS
+ Generalized James-Stein

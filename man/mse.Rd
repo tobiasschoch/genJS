@@ -17,7 +17,7 @@ or jackknife estimator (Jiang et al., 2002).
 Jiang, J., Lahiri, P., Wan, S.-M. (2002). A unified Jackknife Theory
     for Empirical Best Prediction With M-Estimation.
     \emph{The Annals of Statistics} \bold{30}, pp. 1782--1810.
-
+    \doi{10.1214/aos/1043351257}
 Prasad, N. G. N. and Rao, J. N. K. Rao (1990).
     The Estimation of the Mean Squared Error of Small-Area Estimators.
     \emph{Journal of the American Statistical Association} \bold{85},

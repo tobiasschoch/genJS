@@ -4,6 +4,6 @@
 ^\.gitignore$
 ^README\.md$
 # documentation
-^inst/varia$
+^inst$
 # license (github requries it in the base directory but CRAN complains)
 ^LICENSE$

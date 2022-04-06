@@ -95,34 +95,43 @@ genJS <- function(yi, di, center = TRUE, maxit = 100, tol = 1e-5,
     res
 }
 # print method
-print.genJS <- function(x, ...)
+print.genJS <- function(x, digits = max(1L, getOption("digits") - 2L), ...)
 {
-    cat(paste0("\nGeneralized James-Stein ", x$method, " estimator\n"))
     if (!x$converged) {
         cat("\nFisher scoring algorithm did not converge\n\n")
     } else {
+        cat(paste0("\nGeneralized James-Stein ", x$method, " estimator\n"))
         if (x$center) {
-            cat("\nLocation\n")
-            print(x$mu)
+            cat(paste0("\nLocation: ", round(x$mu, digits),"\n"))
         } else {
             cat("\nLocation kept fix at zero\n")
         }
-        cat("Variance:\n")
-        print(x$A)
+        cat(paste0("Variance: ", round(x$A, digits), "\n"))
     }
 }
 # summary method
-summary.genJS <- function(object, ...)
+summary.genJS <- function(object, ..., digits = max(1L,
+    getOption("digits") - 2L))
 {
     cat(paste0("\nGeneralized James-Stein ", object$method, " estimator\n"))
     if (!object$converged) {
         cat("\nFisher scoring algorithm did not converge\n\n")
     } else {
-        cat(paste0("Number of iterations: ", object$niter,
+        if (object$center) {
+            cat(paste0("\nLocation: ", round(object$mu, digits), "\n"))
+        } else {
+            cat("\nLocation kept fix at zero\n")
+        }
+        pval <- pvalue_A(object$model$yi, object$model$di, object$center)
+        cat(paste0("Variance: ", round(object$A, digits), " (p-value:",
+            format.pval(pval), " for H0: A = 0)\n"))
+        cat(paste0("\nNumber of iterations: ", object$niter,
             "\nNumerical tolerance for Fisher scoring: ", object$tol,"\n"))
         if (object$negflag)
             cat("NOTE: Variance estimate was negative (negflag)\n")
     }
+    object$pvalue <- pval
+    invisible(object)
 }
 # extract estimate
 coef.genJS <- function(object, ...)
@@ -137,28 +146,91 @@ vcov.genJS <- function(object, ...)
 #-------------------------------------------------------------------------------
 # EBP: Empirical best predictor
 #-------------------------------------------------------------------------------
-#   x       An estimated model computed with EB_est
-#   Morris  Logical; bias correction of Morris (1983, JASA, Vol. 78)
-predict.genJS <- function(object, morris = FALSE, ...)
+#   x       An estimated model
+#   method  "EB", "morris", "pretest"
+predict.genJS <- function(object, method = "EB", alpha = NULL, ...)
 {
-    Bi <- object$model$di / (object$A + object$model$di)
-    if (morris) {
-        n <- object$model$n
-        Bi <- (n - 3) / (n  - 2) * Bi
-    }
+    match.arg(method, c("EB", "morris", "pretest"))
+    n <- object$model$n
+    yi <- object$model$yi; di <- object$model$di
+    Bi <- di / (object$A + di)
+    mu <- object$mu
+    switch(method,
+        "morris" = {                    # Morris (1983, JASA)
+            Bi <- (n - 3) / (n  - 2) * Bi
+        },
+        "pretest" = {                   # Datta, Hall & Mandal (2011, JASA)
+            if (is.null(alpha))
+                stop("Argument 'alpha' must be defined\n")
+            stopifnot(alpha > 0, alpha < 1)
+            pvalue <- pvalue_A(yi, di, object$center)
+            if (pvalue > alpha) {
+                Bi <- rep(1, n)
+                mu <- ifelse(object$center, sum(yi / di) / sum(1 / di), 0)
+            }
+        })
     # empirical best predictor
-    (1 - Bi) * object$model$yi + Bi * object$mu
+    (1 - Bi) * object$model$yi + Bi * mu
 }
 #-------------------------------------------------------------------------------
 # MSE estimation
 #-------------------------------------------------------------------------------
 #   x       model estimated genJS
 #   method  mse estimation method
-mse <- function(x, method = "analytic")
+mse <- function(x, method = "analytic", alpha = NULL)
 {
     if (class(x) != "genJS")
         stop("Argument 'x' must be an estimate computed by genJS()\n")
-    switch(match.arg(method, c("analytic", "jackknife")),
+    switch(method,
         "analytic" = .mse_analytic(x),
-        "jackknife" = .mse_jackknife(x))
+        "jackknife" = .mse_jackknife(x),
+        "pretest" = {
+            if (is.null(alpha))
+                stop("Argument 'alpha' must be defined\n")
+            stopifnot(alpha > 0, alpha < 1)
+            .mse_pretest(x, alpha)
+        },
+        stop(paste0("Argument method = '", method, "' is unknown\n")))
+}
+#-------------------------------------------------------------------------------
+# jackknife variance estimator of A
+#-------------------------------------------------------------------------------
+jackknife_var <- function(x)
+{
+    if(class(x) != "genJS")
+        stop("Argument 'x' must be of class 'genJS'\n")
+    yi <- x$model$yi
+    di <- x$model$di
+    n <- x$model$n
+    call <- x$call
+    call[[2]] <- substitute(yi[-i])
+    call[[3]] <- substitute(di[-i])
+
+    theta <- rep(0, n)
+    for (i in 1:n) {
+        tmp <- eval(call)
+        theta[i] <- vcov(tmp)
+    }
+    # jackknife variance estimate
+    var(theta) * (n - 1)^2 / n
+}
+#-------------------------------------------------------------------------------
+# Test under the hypothesis H0: A = 0 and HA: A > 0; see Datta, Hall &
+# Mandal (2011, JASA)
+#-------------------------------------------------------------------------------
+pvalue_A <- function(yi, di, center = TRUE){
+    n <- length(yi)
+    if (center) {
+        # estimate location, mu, (under H0)
+        w <- 1 / di
+        mu <- sum(w * yi) / sum(w)
+        df <- n - 1
+    } else {
+        mu <- 0
+        df <- n
+    }
+    # test statistic under H0
+    chi <- sum((yi - mu)^2 / di)
+    # p-value
+    stats::pchisq(chi, df = df, lower.tail = FALSE)
 }

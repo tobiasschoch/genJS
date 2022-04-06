@@ -20,22 +20,41 @@
 # License along with this library; if not, a copy is available at
 # https://www.gnu.org/licenses/
 #-------------------------------------------------------------------------------
-# mse analytic approximation (Prasad & Rao, 1990)
+# mse analytic approximation (Prasad & Rao, 1990, JASA)
 .mse_analytic <- function(x)
 {
     di <- x$model$di; A <- x$A
-    bi <- di / (A + di)
+    Bi <- di / (A + di)
     # first component
-    g1 <- A * bi
+    g1 <- A * Bi
     # second component (if location is estimated, otherwise zero)
-    g2 <- ifelse(x$center, bi^2 / sum(1 / (A + di)), 0)
-    # third component (the same for MLE and REML; see Datta & Lahiri, 2000)
-    g3 <- 2 * bi^2 / ((A + di) * sum(1 / (A + di)^2))
+    g2 <- ifelse(x$center, Bi^2 / sum(1 / (A + di)), 0)
+    # third component (the same for MLE and REML; see Datta & Lahiri, 2000,
+    # Statistica Sinica)
+    g3 <- 2 * Bi^2 / ((A + di) * sum(1 / (A + di)^2))
     # in total
     g1 + g2 + g3
 }
 #-------------------------------------------------------------------------------
-# Jackknife mse estimator of Jiang et al. (2002)
+# mse analytic approximation for pretest estimator; Molina, Rao & Datta (2015,
+# Survey Methodology)
+.mse_pretest <- function(x, alpha)
+{
+    pval <- pvalue_A(x$model$yi, x$model$di, x$center)
+    if (pval > alpha) {
+        di <- x$model$di; A <- x$A
+        Bi <- di / (A + di)
+        # second component (if location is estimated, otherwise zero)
+        if (x$center)
+            Bi^2 / sum(1 / (A + di))
+        else
+            rep(0, length(di))
+    } else {
+        .mse_analytic(x)
+    }
+}
+#-------------------------------------------------------------------------------
+# Jackknife mse estimator of Jiang, Lahiri & Wang  (2002, Annals)
 .mse_jackknife <- function(x)
 {
     yi <- x$model$yi

@@ -1,9 +1,3 @@
-#===============================================================================
-# SUBJECT R functions to quantify regional variation
-# PROJECT Methodenmandat zum Versorgungsatlas im Auftrg des Obsan
-# AUTHORS Tobias Schoch, tobias.schoch@fhnw.ch, January 18, 2022
-# LICENSE GPL >= 2
-#-------------------------------------------------------------------------------
 # Copyright (C) 2022 Tobias Schoch (e-mail: tobias.schoch@fhnw.ch)
 #
 # This library is free software; you can redistribute it and/or
@@ -19,6 +13,28 @@
 # You should have received a copy of the GNU Library General Public
 # License along with this library; if not, a copy is available at
 # https://www.gnu.org/licenses/
+
+#-------------------------------------------------------------------------------
+# MSE estimation
+mse <- function(x, ...)
+{
+    UseMethod("mse")
+}
+#-------------------------------------------------------------------------------
+# mse method for genJS
+mse.genJS <- function(x, method = "analytic", alpha = NULL, ...)
+{
+    switch(method,
+        "analytic" = .mse_analytic(x),
+        "jackknife" = .mse_jackknife(x),
+        "pretest" = {
+            if (is.null(alpha))
+                stop("Argument 'alpha' must be defined\n")
+            stopifnot(alpha > 0, alpha < 1)
+            .mse_pretest(x, alpha)
+        },
+        stop(paste0("Argument method = '", method, "' is unknown\n")))
+}
 #-------------------------------------------------------------------------------
 # mse analytic approximation (Prasad & Rao, 1990, JASA)
 .mse_analytic <- function(x)

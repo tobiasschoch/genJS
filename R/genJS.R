@@ -1,9 +1,3 @@
-#===============================================================================
-# SUBJECT R functions to quantify regional variation
-# PROJECT Methodenmandat zum Versorgungsatlas im Auftrg des Obsan
-# AUTHORS Tobias Schoch, tobias.schoch@fhnw.ch, January 18, 2022
-# LICENSE GPL >= 2
-#-------------------------------------------------------------------------------
 # Copyright (C) 2022 Tobias Schoch (e-mail: tobias.schoch@fhnw.ch)
 #
 # This library is free software; you can redistribute it and/or
@@ -87,12 +81,12 @@ genJS <- function(yi, di, center = TRUE, maxit = 100, tol = 1e-5,
     if (!converged && verbose)
         cat("\nAlgorithm DID NOT converge in", niter, "iterations\n\n")
 
-    res <- list(mu = mu, A = A, center = center,
-            model = list(yi = yi, di = di, n = length(yi)),
-        method = ifelse(center, "REML", "MLE"), converged = converged,
-        niter = niter, tol = tol, negflag = negflag, call = match.call())
-    class(res) <- "genJS"
-    res
+    structure(list(mu = mu, A = A, center = center,
+        model = list(yi = yi, di = di, n = length(yi)),
+        method = ifelse(center, "Generalized James-Stein REML estimator",
+            "General James-Stein MLE estimator"), converged = converged,
+        optim = list(niter = niter, tol = tol, negflag = negflag),
+        call = match.call()), class = "genJS")
 }
 # print method
 print.genJS <- function(x, digits = max(1L, getOption("digits") - 2L), ...)
@@ -100,7 +94,7 @@ print.genJS <- function(x, digits = max(1L, getOption("digits") - 2L), ...)
     if (!x$converged) {
         cat("\nFisher scoring algorithm did not converge\n\n")
     } else {
-        cat(paste0("\nGeneralized James-Stein ", x$method, " estimator\n"))
+        cat(paste0(x$method, "\n"))
         if (x$center) {
             cat(paste0("\nLocation: ", round(x$mu, digits),"\n"))
         } else {
@@ -113,7 +107,7 @@ print.genJS <- function(x, digits = max(1L, getOption("digits") - 2L), ...)
 summary.genJS <- function(object, ..., digits = max(1L,
     getOption("digits") - 2L))
 {
-    cat(paste0("\nGeneralized James-Stein ", object$method, " estimator\n"))
+    cat(paste0(object$method, "\n"))
     if (!object$converged) {
         cat("\nFisher scoring algorithm did not converge\n\n")
     } else {
@@ -125,10 +119,13 @@ summary.genJS <- function(object, ..., digits = max(1L,
         pval <- pvalue_A(object$model$yi, object$model$di, object$center)
         cat(paste0("Variance: ", round(object$A, digits), " (p-value:",
             format.pval(pval), " for H0: A = 0)\n"))
-        cat(paste0("\nNumber of iterations: ", object$niter,
-            "\nNumerical tolerance for Fisher scoring: ", object$tol,"\n"))
-        if (object$negflag)
-            cat("NOTE: Variance estimate was negative (negflag)\n")
+        if (!is.null(object$optim)) {
+            cat(paste0("\nNumber of iterations: ", object$optim$niter,
+                "\nNumerical tolerance for Fisher scoring: ", object$optim$tol,
+                    "\n"))
+            if (object$optim$negflag)
+                cat("NOTE: Variance estimate was negative (negflag)\n")
+        }
     }
     object$pvalue <- pval
     invisible(object)
@@ -173,31 +170,12 @@ predict.genJS <- function(object, method = "EB", alpha = NULL, ...)
     (1 - Bi) * object$model$yi + Bi * mu
 }
 #-------------------------------------------------------------------------------
-# MSE estimation
-#-------------------------------------------------------------------------------
-#   x       model estimated genJS
-#   method  mse estimation method
-mse <- function(x, method = "analytic", alpha = NULL)
-{
-    if (class(x) != "genJS")
-        stop("Argument 'x' must be an estimate computed by genJS()\n")
-    switch(method,
-        "analytic" = .mse_analytic(x),
-        "jackknife" = .mse_jackknife(x),
-        "pretest" = {
-            if (is.null(alpha))
-                stop("Argument 'alpha' must be defined\n")
-            stopifnot(alpha > 0, alpha < 1)
-            .mse_pretest(x, alpha)
-        },
-        stop(paste0("Argument method = '", method, "' is unknown\n")))
-}
-#-------------------------------------------------------------------------------
 # jackknife variance estimator of A
 #-------------------------------------------------------------------------------
+#FIXME: EB and genJS have different arguments: yi, di and oi, ei
 jackknife_var <- function(x)
 {
-    if(class(x) != "genJS")
+    if (!inherits(x, "genJS"))
         stop("Argument 'x' must be of class 'genJS'\n")
     yi <- x$model$yi
     di <- x$model$di

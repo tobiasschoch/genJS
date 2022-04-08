@@ -1,8 +1,11 @@
 \name{Mean Square Error Estimation}
 \alias{mse}
+\alias{mse.genJS}
 \title{Mean Square Error Estimation}
 \usage{
-mse(x, method = "analytic", alpha = NULL)
+mse(x, ...)
+
+\method{mse}{genJS}(x, method = "analytic", alpha = NULL, ...)
 }
 \arguments{
     \item{x}{an object of class \code{genJS}.}
@@ -10,6 +13,7 @@ mse(x, method = "analytic", alpha = NULL)
         \code{"jackknife"}, or \code{"pretest"} (for pretest estimators).}
     \item{alpha}{\code{[numeric]} used in pretest estimator,
         \eqn{0 < \alpha < 1}{0 < \alpha < 1}.}
+    \item{\dots}{additional arguments.}
 }
 \description{
 Mean square error estimation:

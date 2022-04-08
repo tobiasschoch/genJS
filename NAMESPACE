@@ -1,4 +1,5 @@
-importFrom("stats", "complete.cases", "predict", "var", "vcov")
+importFrom("stats", "complete.cases", "predict", "var", "vcov",
+    "quantile", "rpois")
 
 S3method(print,genJS)
 S3method(summary,genJS)
@@ -6,8 +7,16 @@ S3method(coef,genJS)
 S3method(predict,genJS)
 S3method(vcov,genJS)
 
-export(pvalue_A)
+S3method(print,scv)
+S3method(summary,scv)
+S3method(vcov,scv)
+
 export(mse)
+S3method(mse,genJS)
+
+export(pvalue_A)
 export(genJS)
 export(SCV)
+export(EB)
+export(H0_bootstrap)
 export(jackknife_var)

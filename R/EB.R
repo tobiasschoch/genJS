@@ -15,34 +15,31 @@
 # https://www.gnu.org/licenses/
 
 #-------------------------------------------------------------------------------
-# SCV: systematic component of variation, McPerson (1982)
+# Wrapper function for genJS
 #-------------------------------------------------------------------------------
-SCV <- function(oi, ei, approx = TRUE)
+EB <- function(oi, ei, center = FALSE, maxit = 100, tol = 1e-5,
+    verbose = FALSE)
 {
-    stopifnot(all(oi > 0), all(ei > 0))
-    yi <- if (approx)
-        (oi - ei) / ei
+    # match args of EB to args of genJS
+    call <- match.call(definition = genJS)
+
+    # cast 'EB' call to 'genJS' call
+    call[[1]] <- substitute(genJS)
+    call[[2]] <- substitute(yi)
+    call[[3]] <- substitute(di)
+
+    # handle 'center' (default TRUE for genJS)
+    if (!center)
+        call$center <- FALSE
     else
-        log(oi) - log(ei)
-    A <- mean(yi^2 - 1 / ei)
-    structure(list(mu = 0, A = A, center = FALSE,
-        model = list(oi = oi, ei = ei, n = length(oi)),
-        method = "SCV (McPherson et al., 1982)", converged = TRUE,
-        call = match.call()), class = c("scv", "h0"))
-}
-print.scv <- function(x, digits = max(1L, getOption("digits") - 2L), ...)
-{
-    cat(paste0(x$method, "\n"))
-    cat(paste0("Variance: ", round(x$A, digits), "\n"))
-}
-# summary method
-summary.scv <- function(object, ..., digits = max(1L,
-    getOption("digits") - 2L))
-{
-    print(object)
-}
-# extract covariance matrix
-vcov.scv <- function(object, ...)
-{
-    object$A
+        call$center <- NULL
+
+    # call genJS
+    yi <- (oi - ei) / ei; di <- oi / ei^2
+    tmp <- genJS(yi, di, center, maxit, tol, verbose)
+    tmp$model$ei <- ei; tmp$model$oi <- oi
+    tmp$call <- call
+
+    class(tmp) <- c("genJS", "h0")
+    tmp
 }

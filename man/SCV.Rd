@@ -1,12 +1,29 @@
 \name{SCV}
 \alias{SCV}
+\alias{print.scv}
+\alias{summary.scv}
+\alias{vcov.scv}
 \title{Systematic Component of Variation}
 \usage{
-# Generalized James-Stein estimator
-SCV(yi)
+SCV(oi, ei, approx = TRUE)
+
+# Utility functions
+\method{print}{scv}(x, digits = max(1L, getOption("digits") - 2L), ...)
+\method{summary}{scv}(object, ..., digits = max(1L,
+    getOption("digits") - 2L))
+\method{vcov}{scv}(object, ...)
 }
 \arguments{
-    \item{yi}{\code{[numeric vector]} direct estimator.}
+    \item{oi}{\code{[numeric vector]} observed counts.}
+    \item{ei}{\code{[numeric vector]} expected counts.}
+    \item{approx}{\code{[logical]} if \code{TRUE}, then
+        \eqn{log(o_i/e_i)}{log(o[i]/e[i])} is approximate by
+        \eqn{(o_i - e_i) / e_i}{(o[i] - e[i]) / e[i]};
+        default: \code{FALSE}.}
+    \item{x}{an object of class \code{scv}.}
+    \item{object}{an object of class \code{scv}.}
+    \item{digits}{number of digits.}
+    \item{...}{additional arguments.}
 }
 \description{
 Estimator of Systematic Component of Variation (SCV)

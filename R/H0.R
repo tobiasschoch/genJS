@@ -15,34 +15,21 @@
 # https://www.gnu.org/licenses/
 
 #-------------------------------------------------------------------------------
-# SCV: systematic component of variation, McPerson (1982)
+# Parametric bootstrap (Ibanez et al. 2009, BMC Health Service Research)
 #-------------------------------------------------------------------------------
-SCV <- function(oi, ei, approx = TRUE)
+H0_bootstrap <- function(object, replicates = 1000, p = c(0.025, 0.975),
+    seed = 1)
 {
-    stopifnot(all(oi > 0), all(ei > 0))
-    yi <- if (approx)
-        (oi - ei) / ei
-    else
-        log(oi) - log(ei)
-    A <- mean(yi^2 - 1 / ei)
-    structure(list(mu = 0, A = A, center = FALSE,
-        model = list(oi = oi, ei = ei, n = length(oi)),
-        method = "SCV (McPherson et al., 1982)", converged = TRUE,
-        call = match.call()), class = c("scv", "h0"))
-}
-print.scv <- function(x, digits = max(1L, getOption("digits") - 2L), ...)
-{
-    cat(paste0(x$method, "\n"))
-    cat(paste0("Variance: ", round(x$A, digits), "\n"))
-}
-# summary method
-summary.scv <- function(object, ..., digits = max(1L,
-    getOption("digits") - 2L))
-{
-    print(object)
-}
-# extract covariance matrix
-vcov.scv <- function(object, ...)
-{
-    object$A
+    if (!inherits(object, "h0"))
+        stop("Bootstrap is not available for this object\n")
+    call <- object$call
+    call[[2]] <- substitute(oi); call[[3]] <- substitute(ei)
+    set.seed(seed)
+    ei <- object$model$ei
+    res <- numeric(replicates)
+    for (i in 1:replicates) {
+        oi <- rpois(length(ei), ei) # observed counts, assumption rate = 1
+		res[i] <- eval(call)$A		# compute variance estimate
+	}
+    quantile(res, probs = p)
 }

@@ -1,11 +1,13 @@
 \name{Mean Square Error Estimation}
 \alias{mse}
 \alias{mse.genJS}
+\alias{mse.EB}
 \title{Mean Square Error Estimation}
 \usage{
 mse(x, ...)
 
 \method{mse}{genJS}(x, method = "analytic", alpha = NULL, ...)
+\method{mse}{EB}(x, method = "analytic", alpha = NULL, ...)
 }
 \arguments{
     \item{x}{an object of class \code{genJS}.}

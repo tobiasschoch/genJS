@@ -20,16 +20,15 @@
 H0_bootstrap <- function(object, replicates = 1000, p = c(0.025, 0.975),
     seed = 1)
 {
-    if (!inherits(object, "h0"))
+    if (!(inherits(object, c("EB", "scv"))))
         stop("Bootstrap is not available for this object\n")
     call <- object$call
-    call[[2]] <- substitute(oi); call[[3]] <- substitute(ei)
-    set.seed(seed)
     ei <- object$model$ei
+    set.seed(seed)
     res <- numeric(replicates)
     for (i in 1:replicates) {
-        oi <- rpois(length(ei), ei) # observed counts, assumption rate = 1
-		res[i] <- eval(call)$A		# compute variance estimate
+        oi <- rpois(length(ei), ei)     # observed counts, assumption rate = 1
+		res[i] <- vcov(eval(call))      # compute variance estimate
 	}
     quantile(res, probs = p)
 }

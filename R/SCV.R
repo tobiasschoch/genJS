@@ -28,7 +28,7 @@ SCV <- function(oi, ei, approx = TRUE)
     structure(list(mu = 0, A = A, center = FALSE,
         model = list(oi = oi, ei = ei, n = length(oi)),
         method = "SCV (McPherson et al., 1982)", converged = TRUE,
-        call = match.call()), class = c("scv", "h0"))
+        call = match.call()), class = "scv")
 }
 print.scv <- function(x, digits = max(1L, getOption("digits") - 2L), ...)
 {

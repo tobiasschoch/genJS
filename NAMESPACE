@@ -13,6 +13,7 @@ S3method(vcov,scv)
 
 export(mse)
 S3method(mse,genJS)
+S3method(mse,EB)
 
 export(pvalue_A)
 export(genJS)

@@ -21,6 +21,19 @@ mse <- function(x, ...)
     UseMethod("mse")
 }
 #-------------------------------------------------------------------------------
+# mse method for EB
+mse.EB <- function(x, method = "analytic", alpha = NULL, ...)
+{
+    # cast 'EB' object to a 'genJS' object
+    x$call[[1]] <- substitute(genJS)
+    names(x$call)[match(c("oi", "ei"), names(x$call))] <- c("yi", "di")
+    if (is.null(x$call$center))
+        x$call$center <- FALSE
+    class(x) <- "genJS"
+    # call mse
+    mse(x, method, alpha, ...)
+}
+#-------------------------------------------------------------------------------
 # mse method for genJS
 mse.genJS <- function(x, method = "analytic", alpha = NULL, ...)
 {

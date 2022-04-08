@@ -20,26 +20,10 @@
 EB <- function(oi, ei, center = FALSE, maxit = 100, tol = 1e-5,
     verbose = FALSE)
 {
-    # match args of EB to args of genJS
-    call <- match.call(definition = genJS)
-
-    # cast 'EB' call to 'genJS' call
-    call[[1]] <- substitute(genJS)
-    call[[2]] <- substitute(yi)
-    call[[3]] <- substitute(di)
-
-    # handle 'center' (default TRUE for genJS)
-    if (!center)
-        call$center <- FALSE
-    else
-        call$center <- NULL
-
-    # call genJS
     yi <- (oi - ei) / ei; di <- oi / ei^2
     tmp <- genJS(yi, di, center, maxit, tol, verbose)
     tmp$model$ei <- ei; tmp$model$oi <- oi
-    tmp$call <- call
-
-    class(tmp) <- c("genJS", "h0")
+    tmp$call <- match.call()
+    class(tmp) <- c("EB", "genJS")
     tmp
 }
